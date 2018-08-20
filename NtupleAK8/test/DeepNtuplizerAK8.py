@@ -101,40 +101,39 @@ jetCorrectionsAK8 = ('AK8PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'], 'Non
 jetCorrectionsAK4 = ('AK4PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'], 'None')
 
 from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
+
 updateJetCollection(
         process,
-        labelName = "DeepFlavour",
-#        jetSource = cms.InputTag('slimmedJetsAK8'),
-        jetSource = cms.InputTag('slimmedJets'),
-        jetCorrections = jetCorrectionsAK4,
+        labelName = "UpdatedJECAK8",
+        jetSource = cms.InputTag('slimmedJetsAK8'),
+        jetCorrections = ('AK8PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'], 'None'),
         pfCandidates = cms.InputTag('packedPFCandidates'),
         pvSource = cms.InputTag("offlineSlimmedPrimaryVertices"),
         svSource = cms.InputTag('slimmedSecondaryVertices'),
         muSource = cms.InputTag('slimmedMuons'),
         elSource = cms.InputTag('slimmedElectrons'),
         btagInfos = bTagInfos,
-        btagDiscriminators = bTagDiscriminators,
-        explicitJTA = False
+        btagDiscriminators = bTagDiscriminators
 )
 
-if hasattr(process,'updatedPatJetsTransientCorrectedDeepFlavour'):
-	process.updatedPatJetsTransientCorrectedDeepFlavour.addTagInfos = cms.bool(True) 
-	process.updatedPatJetsTransientCorrectedDeepFlavour.addBTagInfo = cms.bool(True)
+if hasattr(process,'updatedPatJetsTransientCorrectedUpdatedJECAK8'):
+	process.updatedPatJetsTransientCorrectedUpdatedJECAK8.addTagInfos = cms.bool(True) 
+	process.updatedPatJetsTransientCorrectedUpdatedJECAK8.addBTagInfo = cms.bool(True)
 else:
 	raise ValueError('I could not find updatedPatJetsTransientCorrectedDeepFlavour to embed the tagInfos, please check the cfg')
 # ---------------------------------------------------------
 
 # DeepNtuplizer
 process.load("DeepNTuples.NtupleAK8.DeepNtuplizerAK8_cfi")
-#process.deepntuplizer.jets = cms.InputTag('selectedUpdatedPatJetsDeepFlavour')
-process.deepntuplizer.jets = cms.InputTag("slimmedJets")
+process.deepntuplizer.jets = cms.InputTag('selectedUpdatedPatJetsUpdatedJECAK8')
+#process.deepntuplizer.jets = cms.InputTag("slimmedJetsAK8")
 process.deepntuplizer.bDiscriminators = bTagDiscriminators 
 #process.deepntuplizer.bDiscriminators.append('pfCombinedMVAV2BJetTags')
 process.deepntuplizer.LooseSVs = cms.InputTag("looseIVFinclusiveCandidateSecondaryVertices")
 process.deepntuplizer.fjKeepFlavors = cms.untracked.vuint32(options.fjKeepFlavors)
 process.deepntuplizer.isQCDSample = '/QCD_' in options.inputDataset
 
-process.deepntuplizer.jetR = cms.double(0.4)
+process.deepntuplizer.jetR = cms.double(0.8)
 
 # process.p = cms.Path(process.QGTagger + process.genJetSequence * process.deepntuplizer)
 process.p = cms.Path(process.deepntuplizer)

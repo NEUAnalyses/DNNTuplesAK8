@@ -23,6 +23,7 @@ void PFCandidateFiller::book() {
   data.add<float>("npfcands", 0);
 
   // basic kinematics, valid for both charged and neutral
+  /*
   data.addMulti<float>("pfcand_ptrel");
   data.addMulti<float>("pfcand_erel");
   data.addMulti<float>("pfcand_phirel");
@@ -55,7 +56,7 @@ void PFCandidateFiller::book() {
   data.addMulti<float>("pfcand_dzsig");
   data.addMulti<float>("pfcand_dxy");
   data.addMulti<float>("pfcand_dxysig");
-
+  */
 }
 
 bool PFCandidateFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper& jet_helper) {
@@ -66,7 +67,8 @@ bool PFCandidateFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper
   data.fill<float>("npfcands", jetConstituents.size());
 
   float etasign = jet.eta()>0 ? 1 : -1;
-
+  
+  /*
   for (const auto *pfcand : jetConstituents){
 
     // basic kinematics, valid for both charged and neutral
@@ -111,8 +113,8 @@ bool PFCandidateFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper
     data.fillMulti<float>("pfcand_dxysig", catchInfs(pfcand->dxy()/pfcand->dxyError()));
 
   }
-
-
+  */
+  
   return true;
 }
 

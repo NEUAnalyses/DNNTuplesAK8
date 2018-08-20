@@ -26,15 +26,16 @@ void TrackFiller::readEvent(const edm::Event& iEvent, const edm::EventSetup& iSe
 
 void TrackFiller::book() {
 
-  data.add<int>("n_tracks", 0);
-  data.add<float>("ntracks", 0);
+  data.add<int>  ("n_tracks"  , 0);
+  data.add<float>("ntracks"   , 0);
 
   // adding displaced jet info
-  data.add<float>("alpha", -1);
-  data.add<float>("alphaMax", -1);
-  data.add<float>("alphaSV", -1);
+  data.add<float>("alpha"     , -1);
+  data.add<float>("alphaMax"  , -1);
+  data.add<float>("alphaSV"   , -1);
   data.add<float>("alphaSVMax", -1);
-
+  
+  /*
   // basic kinematics
   data.addMulti<float>("track_ptrel");
   data.addMulti<float>("track_erel");
@@ -44,31 +45,31 @@ void TrackFiller::book() {
   data.addMulti<float>("track_puppiw");
   data.addMulti<float>("track_pt");
   data.addMulti<float>("track_mass");
-
+  
   data.addMulti<float>("track_drminsv");
   data.addMulti<float>("track_drsubjet1");
   data.addMulti<float>("track_drsubjet2");
-
+  
   data.addMulti<float>("track_charge");
   data.addMulti<float>("track_isMu");
   data.addMulti<float>("track_isEl");
   data.addMulti<float>("track_isChargedHad");
 
-  // for charged
+  //for charged
   data.addMulti<float>("track_VTX_ass");
   data.addMulti<float>("track_fromPV");
   data.addMulti<float>("track_lostInnerHits");
-
+  
   // impact parameters
   data.addMulti<float>("track_dz");
   data.addMulti<float>("track_dzsig");
   data.addMulti<float>("track_dxy");
   data.addMulti<float>("track_dxysig");
-
+  
   // track quality
   data.addMulti<float>("track_normchi2");
   data.addMulti<float>("track_quality");
-
+  
   // track covariance
   data.addMulti<float>("track_dptdpt");
   data.addMulti<float>("track_detadeta");
@@ -78,7 +79,7 @@ void TrackFiller::book() {
   data.addMulti<float>("track_dxydz");
   data.addMulti<float>("track_dphidxy");
   data.addMulti<float>("track_dlambdadz");
-
+  
   // track btag info
   data.addMulti<float>("trackBTag_Momentum");
   data.addMulti<float>("trackBTag_Eta");
@@ -93,8 +94,8 @@ void TrackFiller::book() {
   data.addMulti<float>("trackBTag_Sip3dVal");
   data.addMulti<float>("trackBTag_Sip3dSig");
   data.addMulti<float>("trackBTag_JetDistVal");
-//  data.addMulti<float>("trackBTag_JetDistSig"); // always gives 0
-
+  data.addMulti<float>("trackBTag_JetDistSig"); // always gives 0
+  */
 
 }
 
@@ -111,31 +112,40 @@ bool TrackFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper& jet_
   }
   
   // sort by Sip2d significance
-  std::sort(chargedPFCands.begin(), chargedPFCands.end(), [&](const pat::PackedCandidate *p1, const pat::PackedCandidate *p2){
-    return trackInfoMap.at(p1).getTrackSip2dSig() > trackInfoMap.at(p2).getTrackSip2dSig();
-  });
+  //std::sort(chargedPFCands.begin(), chargedPFCands.end(), [&](const pat::PackedCandidate *p1, const pat::PackedCandidate *p2){
+  //  return trackInfoMap.at(p1).getTrackSip2dSig() > trackInfoMap.at(p2).getTrackSip2dSig();
+  //});
   
   // calculating the alpha for pv and sv
   //float sumJetPt  = 0;
   //float alpha     = 0;
   
-  const auto &lead_pv = vertices->at(0);
-  //bool in_lead_pv = false; 
-  // const auto &lead_sv = SVs->at(0);
-  // std::cout << " Jet Radius : " << jetR_ << std::endl;
+  //const auto &lead_pv = vertices->at(0);
+  //const auto &lead_sv = SVs->at(0);
+  
   // these are the sums for this specific vertex
+  int tkr_id = 0;
+  std::cout << "index"   << "\t"
+	    << "pt"      << "\t"
+	    << "frPV"    << "\t"
+    	    << "pvas"    << "\t"
+	    << "DR"      << "\t"
+	    << "dz"      << "\t"
+	    << "dxy"     << std::endl;
   for (const auto *tkr : chargedPFCands){
     if((tkr->pt() < 1.0)) continue; //apply a cut on the track pt 
-    //float lead_pv_dz = std::abs(tkr->trackRef()->dz(lead_pv->position()));
-    int vtx_i = 0 ;
-    for (const auto &iv : *vertices){
-      if( iv.isFake() || iv.ndof() < 4 ) continue;
-      bool is_lead_pv  = (iv.position() - lead_pv.position()).r() < 0.02;
-      std::cout << " -- " << vtx_i << " : "<< is_lead_pv << " -- trak dz(pv)" << tkr->dz(iv.position()) << std::endl;
-      vtx_i ++ ;
-    }
+    const auto &trkinfo = trackInfoMap.at(tkr);
+    std::cout << tkr_id << "\t"
+	      << tkr->pt() << "\t"
+	      << tkr->fromPV() << "\t"
+	      << tkr->pvAssociationQuality() << "\t"
+	      << trkinfo.getTrackDeltaR()    << "\t"
+	      << tkr->dz() << "\t"
+	      << tkr->dxy() << "\t"
+	      << std::endl;
+    tkr_id++;
   }
-  //
+  
   //for (const auto &sv : *SVs){
   //
   //k
@@ -144,8 +154,9 @@ bool TrackFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper& jet_
   data.fill<int>("n_tracks", chargedPFCands.size());
   data.fill<float>("ntracks", chargedPFCands.size());
 
-  float etasign = jet.eta()>0 ? 1 : -1;
-
+  //float etasign = jet.eta()>0 ? 1 : -1;
+  
+  /*
   for (const auto *cpf : chargedPFCands){
 
     // basic kinematics, valid for both charged and neutral
@@ -219,6 +230,8 @@ bool TrackFiller::fill(const pat::Jet& jet, size_t jetidx, const JetHelper& jet_
     // data.fillMulti<float>("trackBTag_JetDistSig", trkinfo.getTrackJetDistSig());    
     
   }
+  */
+  
   //const auto &pv = vertices->at(0);
   //std::cout << "primary vertex : " << pv.x() << std::endl;
   
